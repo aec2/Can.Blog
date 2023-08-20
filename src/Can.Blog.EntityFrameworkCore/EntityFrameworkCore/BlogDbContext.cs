@@ -51,6 +51,9 @@ public class BlogDbContext :
     public DbSet<Tenant> Tenants { get; set; }
     public DbSet<TenantConnectionString> TenantConnectionStrings { get; set; }
 
+    // Blog Posts
+    public DbSet<Posts.Post> Posts{ get; set; }
+
     #endregion
 
     public BlogDbContext(DbContextOptions<BlogDbContext> options)
