@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Can.Blog.Blog;
+using Microsoft.EntityFrameworkCore;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.Data;
@@ -52,7 +53,9 @@ public class BlogDbContext :
     public DbSet<TenantConnectionString> TenantConnectionStrings { get; set; }
 
     // Blog Posts
-    public DbSet<Posts.Post> Posts{ get; set; }
+    public DbSet<Blog.Post> Posts { get; set; }
+    public DbSet<Category> Categories { get; set; }
+    public DbSet<Tag> Tags { get; set; }
 
     #endregion
 
@@ -85,5 +88,16 @@ public class BlogDbContext :
         //    b.ConfigureByConvention(); //auto configure for the base class props
         //    //...
         //});
+
+        builder.Entity<Post>()
+            .HasMany(e => e.Tags)
+            .WithMany(e => e.Posts)
+            .UsingEntity<PostTag>(l => l.HasOne<Tag>(e => e.Tag).WithMany(e => e.PostTags).HasForeignKey(e => e.TagGuid), r => r.HasOne<Post>(e => e.Post).WithMany(e => e.PostTags).HasForeignKey(e => e.PostGuid));
+
+        builder.Entity<Category>()
+            .HasMany(e => e.Posts)
+            .WithOne(p => p.Category)
+            .HasForeignKey(p => p.Id)
+            .IsRequired();
     }
 }
