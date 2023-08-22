@@ -97,7 +97,7 @@ public class BlogDbContext :
         builder.Entity<Category>()
             .HasMany(e => e.Posts)
             .WithOne(p => p.Category)
-            .HasForeignKey(p => p.Id)
+            .HasForeignKey(p => p.CategoryId)
             .IsRequired();
     }
 }

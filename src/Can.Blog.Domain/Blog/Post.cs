@@ -6,6 +6,10 @@ namespace Can.Blog.Blog
 {
     public class Post: Entity<Guid>
     {
+        public Post()
+        {
+            
+        }
         private Post(Guid id, string title, string content, string imgUrl, string user): base(id)
         {
             Title = title;
@@ -24,6 +28,7 @@ namespace Can.Blog.Blog
         public DateTime PublishedDate { get; private set; }
         public string ImgUrl { get; private set; }
         public string UserName { get; private set; }
+        public Guid CategoryId { get; set; }
         public Category Category { get; private set; }
         public List<PostTag> PostTags { get; } = new();
         public List<Tag> Tags { get; } = new();
