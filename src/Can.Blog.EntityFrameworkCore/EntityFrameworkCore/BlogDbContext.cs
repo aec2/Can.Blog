@@ -1,5 +1,6 @@
 ﻿using Can.Blog.Blog;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.Data;
@@ -98,6 +99,9 @@ public class BlogDbContext :
             .HasMany(e => e.Posts)
             .WithOne(p => p.Category)
             .HasForeignKey(p => p.CategoryId)
-            .IsRequired();
+        .IsRequired();
+
+        builder.Entity<PostTag>()
+            .HasKey(pt => new { pt.PostGuid, pt.TagGuid});
     }
 }

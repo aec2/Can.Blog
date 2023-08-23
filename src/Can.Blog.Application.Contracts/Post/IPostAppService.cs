@@ -8,6 +8,6 @@ namespace Can.Blog.Post
 {
     public interface IPostAppService: IApplicationService
     {
-        public Task<PostDto> GetPostByIdAsync(Guid id);
+        public Task<PostDTO> GetPostByIdAsync(Guid id);
     }
 }
