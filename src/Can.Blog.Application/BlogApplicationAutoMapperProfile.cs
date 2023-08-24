@@ -12,8 +12,10 @@ public class BlogApplicationAutoMapperProfile : Profile
         /* You can configure your AutoMapper mapping configuration here.
          * Alternatively, you can split your mapping configurations
          * into multiple profile classes for a better organization. */
-        CreateMap<Blog.Post, PostDTO>();
+        CreateMap<Blog.Post, PostDTO>()
+            .ForMember(dest => dest.CategoryDto, opt => opt.MapFrom(src => src.Category)); ;
         CreateMap<Blog.Tag, TagDTO>();
         CreateMap<Blog.Category, CategoryDTO>();
+
     }
 }

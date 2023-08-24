@@ -14,7 +14,7 @@ namespace Can.Blog.Post
         public DateTime PublishedDate { get; set; }
         public string ImgUrl { get; set; }
         public string UserName { get; set; }
-        //public Guid CategoryId { get; set; }
+        public Guid CategoryId { get; set; }
         //public string CategoryName { get; set; } 
         public CategoryDTO CategoryDto { get; set; }
         public List<TagDTO> Tags { get; set; } = new(); 

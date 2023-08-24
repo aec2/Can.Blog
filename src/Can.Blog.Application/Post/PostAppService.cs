@@ -8,6 +8,7 @@ using AutoMapper;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Entities;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.ObjectMapping;
 
 namespace Can.Blog.Post
 {
@@ -24,7 +25,7 @@ namespace Can.Blog.Post
 
         public async Task<PostDTO> GetPostByIdAsync(Guid id)
         {
-            var queryable = await _postRepository.WithDetailsAsync(x=> x.Tags); //WithDetailsAsync(x=> x.Tags);
+            var queryable = await _postRepository.WithDetailsAsync(x=> x.Tags, x => x.Category); 
 
             var query = queryable.Where(x => x.Id == id);
             var queryResult = await AsyncExecuter.FirstOrDefaultAsync(query);
@@ -47,6 +48,20 @@ namespace Can.Blog.Post
             }
 
             return new PostDTO();
+        }
+
+        public async Task<List<PostDTO>> GetAllPosts()
+        {
+            var postList = await _postRepository.WithDetailsAsync(x=> x.Tags, x => x.Category);
+
+            if (postList == null)
+            {
+                return new List<PostDTO>();
+            }
+
+            var postDtos = ObjectMapper.Map<List<Blog.Post>, List<PostDTO>>(postList.ToList());
+            return postDtos;
+
         }
     }
 }
