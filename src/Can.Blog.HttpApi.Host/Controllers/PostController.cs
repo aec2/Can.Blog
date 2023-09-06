@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using Can.Blog.Post;
-using Microsoft.AspNetCore.Mvc;
+﻿using Can.Blog.Post;
 using Volo.Abp.AspNetCore.Mvc;
 
 namespace Can.Blog.Controllers

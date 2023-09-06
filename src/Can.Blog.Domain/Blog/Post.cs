@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
-using System.Linq;
+using System.Text.Json.Serialization;
 using Volo.Abp.Domain.Entities;
 
 namespace Can.Blog.Blog
@@ -31,7 +30,7 @@ namespace Can.Blog.Blog
         public string ImgUrl { get; private set; }
         public string UserName { get; private set; }
         public Guid CategoryId { get; set; }
-        public Category Category { get; private set; }
+        public Category Category { get;  set; }
         public List<PostTag> PostTags { get; } = new();
         public List<Tag> Tags { get; } = new();
     }

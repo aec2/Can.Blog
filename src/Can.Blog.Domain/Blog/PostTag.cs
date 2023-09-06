@@ -1,9 +1,5 @@
-﻿using Can.Blog.Blog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
+using Volo.Abp.Domain.Entities;
 
 namespace Can.Blog.Blog
 {
