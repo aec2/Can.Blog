@@ -105,35 +105,6 @@ namespace Can.Blog.Post
             await _postRepository.DeleteAsync(post);
         }
 
-        public async Task<Blog.Post> UpdateAsync2(Guid id, CreateUpdatePostDto updateDto)
-        {
-            if (id == Guid.Empty)
-                throw new ArgumentException("Id cannot be empty", nameof(id));
-
-            var existingPost = await _postRepository.FindAsync(x => x.Id == id);
-            if (existingPost == null)
-                throw new EntityNotFoundException($"No Post found with the ID {id}");
-            var tags = ObjectMapper.Map<List<TagDTO>, List<Blog.Tag>>(updateDto.Tags);
-
-            ObjectMapper.Map(updateDto, existingPost);
-
-            existingPost.PostTags.Clear();
-
-            foreach (var tagDto in updateDto.Tags)
-            {
-                var postTag = new PostTag
-                {
-                    PostGuid = existingPost.Id,
-                    TagGuid = tagDto.Id  // Assuming the TagDTO has an Id property that points to an existing Tag
-                };
-
-                existingPost.PostTags.Add(postTag);
-            }
-
-            await _postRepository.UpdateAsync(existingPost);
-            return existingPost;
-        }
-
         public async Task<Blog.Post> UpdateAsync(Guid id, CreateUpdatePostDto updateDto)
         {
             if (id == Guid.Empty)

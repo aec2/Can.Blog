@@ -18,8 +18,10 @@ public class BlogApplicationAutoMapperProfile : Profile
         CreateMap<Blog.Tag, TagDTO>();
         CreateMap<TagDTO, Blog.Tag>();
 
-        CreateMap<Blog.Category, CategoryDTO>();
-        CreateMap<CategoryDTO, Blog.Category>();
+        CreateMap<Blog.Category, CategoryDTO>()
+            .ForMember(category => category.Id, opt => opt.MapFrom(src => src.Id));
+        CreateMap<CategoryDTO, Blog.Category>()
+            .ForMember(category => category.Id, opt => opt.MapFrom(src => src.Id)); ;
         CreateMap<Blog.Post, CreateUpdatePostDto>();
         CreateMap<Blog.Post, CreateUpdatePostDto>()
             .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.Tags))
