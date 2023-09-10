@@ -21,7 +21,7 @@ namespace Can.Blog.EntityFrameworkCore;
 public class BlogDbContext :
     AbpDbContext<BlogDbContext>,
     IIdentityDbContext
-    //ITenantManagementDbContext
+//ITenantManagementDbContext
 {
     /* Add DbSet properties for your Aggregate Roots / Entities here. */
 
@@ -79,45 +79,26 @@ public class BlogDbContext :
         builder.ConfigureOpenIddict();
         builder.ConfigureFeatureManagement();
 
-        /* Configure your own tables/entities inside here */
-
-        //builder.Entity<YourEntity>(b =>
-        //{
-        //    b.ToTable(BlogConsts.DbTablePrefix + "YourEntities", BlogConsts.DbSchema);
-        //    b.ConfigureByConvention(); //auto configure for the base class props
-        //    //...
-        //});
 
         builder.Entity<Post>()
-            .HasMany(e => e.Tags)
-            .WithMany(e => e.Posts)
-            .UsingEntity<PostTag>(
-                l => l.HasOne<Tag>(e => e.Tag)
-                    .WithMany(e => e.PostTags)
-                    .HasForeignKey(e => e.TagGuid),
-                r => r.HasOne<Post>(e => e.Post)
-                    .WithMany(e => e.PostTags)
-                    .HasForeignKey(e => e.PostGuid)
-                    .OnDelete(DeleteBehavior.Cascade)  // Add cascade delete for Post -> PostTag relationship
-            );
+            .HasMany(p => p.PostTags)  // Post has many PostTag
+            .WithOne(pt => pt.Post)    // But each PostTag has one Post
+            .HasForeignKey(pt => pt.PostGuid)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<Category>()
-            .ConfigureByConvention();
-        //    .HasMany(e => e.Posts)
-        //    .WithOne(p => p.Category)
-        //    .HasForeignKey(p => p.CategoryId)
-        //.IsRequired();
+            .HasMany(e => e.Posts)
+            .WithOne(p => p.Category)
+            .HasForeignKey(p => p.CategoryId)
+        .IsRequired();
 
         builder.Entity<PostTag>()
-            .ConfigureByConvention();
-            //.HasKey(pt => new { pt.PostGuid, pt.TagGuid });
+            .HasKey(pt => new { pt.PostGuid, pt.TagGuid });
 
         builder.Entity<Tag>()
-            .ConfigureByConvention();
-
-        //.HasMany(t => t.PostTags)
-        //.WithOne(pt => pt.Tag)
-        //.HasForeignKey(pt => pt.TagGuid)
-        //.OnDelete(DeleteBehavior.Cascade);
+            .HasMany(t => t.PostTags)  // Tag has many PostTag
+            .WithOne(pt => pt.Tag)     // But each PostTag has one Tag
+            .HasForeignKey(pt => pt.TagGuid)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

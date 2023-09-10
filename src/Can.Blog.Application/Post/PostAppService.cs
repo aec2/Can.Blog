@@ -5,9 +5,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Can.Blog.Blog;
 using Can.Blog.Tag;
+using Polly;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Entities;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Uow;
 
 namespace Can.Blog.Post
 {
@@ -15,16 +17,18 @@ namespace Can.Blog.Post
     {
         private readonly IRepository<Blog.Post> _postRepository;
         private readonly IRepository<Blog.Category> _categoryRepository;
+        private readonly IRepository<Blog.Tag> _tagRepository;
 
-        public PostAppService(IRepository<Blog.Post> postRepository, IRepository<Blog.Category> categoryRepository)
+        public PostAppService(IRepository<Blog.Post> postRepository, IRepository<Blog.Category> categoryRepository, IRepository<Blog.Tag> tagRepository)
         {
             _postRepository = postRepository;
             _categoryRepository = categoryRepository;
+            _tagRepository = tagRepository;
         }
 
         public async Task<PostDTO> GetPostByIdAsync(Guid id)
         {
-            var queryable = await _postRepository.WithDetailsAsync(x => x.Tags, x => x.Category);
+            var queryable = await _postRepository.WithDetailsAsync(x => x.Category, x => x.PostTags);
 
             var query = queryable.Where(x => x.Id == id);
             var queryResult = await AsyncExecuter.FirstOrDefaultAsync(query);
@@ -51,32 +55,50 @@ namespace Can.Blog.Post
 
         public async Task<List<PostDTO>> GetAllPosts()
         {
-            var postList = await _postRepository.WithDetailsAsync(x => x.Tags, x => x.Category);
+            var postList = await _postRepository.WithDetailsAsync( x => x.Category);
 
             if (postList == null)
             {
                 return new List<PostDTO>();
             }
 
-            var postDtos = ObjectMapper.Map<List<Blog.Post>, List<PostDTO>>(postList.ToList());
+            var postDtos = ObjectMapper.Map<List<Blog.Post>, List<PostDTO>>(postList.OrderByDescending(x => x.PublishedDate).ToList());
             return postDtos;
 
         }
 
-
+        [UnitOfWork(IsDisabled = true)]
         public async Task<Blog.Post> CreateAsync(CreateUpdatePostDto newCreateUpdatePostDto)
         {
             try
             {
-                var post = ObjectMapper.Map<CreateUpdatePostDto, Blog.Post>(newCreateUpdatePostDto);
+                var post = new Blog.Post
+                {
+                    Title = newCreateUpdatePostDto.Title,
+                    Content = newCreateUpdatePostDto.Content,
+                    ImgUrl = newCreateUpdatePostDto.ImgUrl,
+                    UserName = newCreateUpdatePostDto.UserName,
+                    CategoryId = newCreateUpdatePostDto.CategoryId,
+                    PublishedDate = DateTime.Now
+                };
                 var result = await _postRepository.InsertAsync(post);
+
+                result.PostTags.Clear();
+                if (newCreateUpdatePostDto.Tags.Any())
+                {
+                    foreach (var tag in newCreateUpdatePostDto.Tags)
+                    {
+                        result.PostTags.Add(new PostTag()
+                        {
+                            PostGuid = result.Id,
+                            TagGuid = tag.Id
+                        }); 
+                    }
+                }
+
+                await _postRepository.UpdateAsync(result);
                 return result;
             }
-            //catch (DbUpdateException dbEx)
-            //{
-            //    Debug.WriteLine($"Database update error occurred while creating new post: {dbEx.Message}");
-            //    throw;
-            //}
             catch (ArgumentNullException argNullEx)
             {
                 Debug.WriteLine($"Null argument error occurred while creating new post: {argNullEx.Message}");
@@ -110,21 +132,14 @@ namespace Can.Blog.Post
             if (id == Guid.Empty)
                 throw new ArgumentException("Id cannot be empty", nameof(id));
 
-            var existingPostQueryable = await _postRepository.WithDetailsAsync(x => x.Tags, x => x.Category);
-            var existingPost = existingPostQueryable.FirstOrDefault(x => x.Id == id);//.FindAsync(x => x.Id == id);
+            var existingPostQueryable = await _postRepository.WithDetailsAsync(x => x.PostTags);
+            var existingPost = existingPostQueryable.FirstOrDefault(x => x.Id == id);
             if (existingPost == null)
                 throw new EntityNotFoundException($"No Post found with the ID {id}");
-
 
             // Map properties from DTO to existing post
             ObjectMapper.Map(updateDto, existingPost);
 
-            // For categories, get the existing category from the database and assign it to the post
-            var existingCategory = await _categoryRepository.FindAsync(x => x.Id == updateDto.CategoryId); // Assuming your CategoryDTO has an Id property
-            if (existingCategory != null)
-            {
-                existingPost.Category = existingCategory;
-            }
 
             // Clear existing PostTag relationships
             existingPost.PostTags.Clear();

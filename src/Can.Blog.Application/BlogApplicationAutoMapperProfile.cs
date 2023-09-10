@@ -18,18 +18,20 @@ public class BlogApplicationAutoMapperProfile : Profile
         CreateMap<Blog.Tag, TagDTO>();
         CreateMap<TagDTO, Blog.Tag>();
 
+        CreateMap<Blog.PostTag, PostTagDTO>();
+        CreateMap<PostTagDTO, Blog.PostTag>();
+
         CreateMap<Blog.Category, CategoryDTO>()
             .ForMember(category => category.Id, opt => opt.MapFrom(src => src.Id));
         CreateMap<CategoryDTO, Blog.Category>()
             .ForMember(category => category.Id, opt => opt.MapFrom(src => src.Id)); ;
-        CreateMap<Blog.Post, CreateUpdatePostDto>();
         CreateMap<Blog.Post, CreateUpdatePostDto>()
-            .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.Tags))
+            //.ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.Tags))
             .ForMember(dest => dest.CategoryDto, opt => opt.MapFrom(src => src.Category));
 
         CreateMap<CreateUpdatePostDto, Blog.Post>()
-            .ForMember(dest => dest.Tags, opt => opt.Ignore()) // since Tags collection is read-only
-            .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.CategoryDto))
+            //.ForMember(dest => dest.Tags, opt => opt.MapFrom(src =>src.Tags)) 
+            .ForMember(dest => dest.Category, opt => opt.Ignore())
             .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.CategoryId));
 
 

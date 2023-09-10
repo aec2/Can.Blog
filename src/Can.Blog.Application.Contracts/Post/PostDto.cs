@@ -17,5 +17,6 @@ namespace Can.Blog.Post
         //public string CategoryName { get; set; } 
         public CategoryDTO CategoryDto { get; set; }
         public List<TagDTO> Tags { get; set; } = new(); 
+        public List<PostTagDTO> PostTags { get; set; } = new(); 
     }
 }
