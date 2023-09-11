@@ -12,16 +12,18 @@ using Volo.Abp.Identity.EntityFrameworkCore;
 using Volo.Abp.OpenIddict.EntityFrameworkCore;
 using Volo.Abp.PermissionManagement.EntityFrameworkCore;
 using Volo.Abp.SettingManagement.EntityFrameworkCore;
+using Volo.Abp.TenantManagement;
+using Volo.Abp.TenantManagement.EntityFrameworkCore;
 
 namespace Can.Blog.EntityFrameworkCore;
 
 [ReplaceDbContext(typeof(IIdentityDbContext))]
-//[ReplaceDbContext(typeof(ITenantManagementDbContext))]
+[ReplaceDbContext(typeof(ITenantManagementDbContext))]
 [ConnectionStringName("Default")]
 public class BlogDbContext :
     AbpDbContext<BlogDbContext>,
-    IIdentityDbContext
-//ITenantManagementDbContext
+    IIdentityDbContext,
+   ITenantManagementDbContext
 {
     /* Add DbSet properties for your Aggregate Roots / Entities here. */
 
@@ -48,8 +50,8 @@ public class BlogDbContext :
     public DbSet<IdentityUserDelegation> UserDelegations { get; set; }
 
     // Tenant Management
-    //public DbSet<Tenant> Tenants { get; set; }
-    //public DbSet<TenantConnectionString> TenantConnectionStrings { get; set; }
+    public DbSet<Tenant> Tenants { get; set; }
+    public DbSet<TenantConnectionString> TenantConnectionStrings { get; set; }
 
     // Blog Posts
     public DbSet<Blog.Post> Posts { get; set; }
@@ -78,6 +80,7 @@ public class BlogDbContext :
         builder.ConfigureIdentity();
         builder.ConfigureOpenIddict();
         builder.ConfigureFeatureManagement();
+        builder.ConfigureTenantManagement();
 
 
         builder.Entity<Post>()

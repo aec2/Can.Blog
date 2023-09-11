@@ -25,6 +25,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Volo.Abp.TenantManagement.EntityFrameworkCore" Version="7.3.2" />
   </ItemGroup>
 
 </Project>
