@@ -14,6 +14,4 @@ public class Tag : Entity<Guid>
     public string Name { get; private set; }
     public string Alias { get; set; }
     public List<PostTag> PostTags { get; } = new();
-    //public List<Post> Posts { get; } = new();
-
 }

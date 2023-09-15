@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Can.Blog.Tag;
+using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 
@@ -29,6 +30,16 @@ namespace Can.Blog.Post
 
             var categoriesDto = ObjectMapper.Map<List<Blog.Tag>, List<TagDTO>>(categories.ToList());
             return categoriesDto;
+
+        }
+
+        public async Task<TagDTO> CreateAsync(TagDTO tagDto)
+        {
+            var tagEntity = ObjectMapper.Map<TagDTO, Blog.Tag>(tagDto);
+
+            var result = await _tagRepository.InsertAsync(tagEntity);
+
+            return ObjectMapper.Map<Blog.Tag,TagDTO>(result);
 
         }
     }

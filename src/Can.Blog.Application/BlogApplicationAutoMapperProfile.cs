@@ -15,8 +15,11 @@ public class BlogApplicationAutoMapperProfile : Profile
             //.ForMember(dest => dest.CategoryDto, opt => opt.MapFrom(src => src.Category)); ;
         CreateMap<Blog.Post, PostDTO>()
             .ForMember(dest => dest.CategoryDto, opt => opt.MapFrom(src => src.Category));
-        CreateMap<Blog.Tag, TagDTO>();
-        CreateMap<TagDTO, Blog.Tag>();
+        CreateMap<Blog.Tag, TagDTO>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore());
+        CreateMap<TagDTO, Blog.Tag>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore());
+
 
         CreateMap<Blog.PostTag, PostTagDTO>();
         CreateMap<PostTagDTO, Blog.PostTag>();

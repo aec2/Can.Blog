@@ -31,5 +31,15 @@ namespace Can.Blog.Post
             return categoriesDto;
 
         }
+
+        public async Task<CategoryDTO> CreateAsync(CategoryDTO categoryDto)
+        {
+            var categoryEntity = ObjectMapper.Map<CategoryDTO, Blog.Category>(categoryDto);
+
+            var result = await _categoryRepository.InsertAsync(categoryEntity);
+
+            return ObjectMapper.Map<Blog.Category, CategoryDTO>(result);
+
+        }
     }
 }
