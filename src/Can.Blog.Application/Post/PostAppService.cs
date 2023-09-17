@@ -40,13 +40,12 @@ namespace Can.Blog.Post
 
             try
             {
-                var postDto = ObjectMapper.Map<Blog.Post, PostDTO>(queryResult); //TODO Check this mapping
+                var postDto = ObjectMapper.Map<Blog.Post, PostDTO>(queryResult); 
                 return postDto;
 
             }
             catch (Exception exception)
             {
-
                 Debug.WriteLine(exception.Message);
             }
 
@@ -81,23 +80,21 @@ namespace Can.Blog.Post
                     CategoryId = newCreateUpdatePostDto.CategoryId,
                     PublishedDate = DateTime.Now
                 };
-                var result = await _postRepository.InsertAsync(post);
 
-                result.PostTags.Clear();
                 if (newCreateUpdatePostDto.Tags.Any())
                 {
                     foreach (var tag in newCreateUpdatePostDto.Tags)
                     {
-                        result.PostTags.Add(new PostTag()
+                        post.PostTags.Add(new PostTag()
                         {
-                            PostGuid = result.Id,
+                            PostGuid = post.Id,
                             TagGuid = tag.Id
-                        }); 
+                        });
                     }
                 }
-
-                await _postRepository.UpdateAsync(result);
+                var result = await _postRepository.InsertAsync(post);
                 return result;
+
             }
             catch (ArgumentNullException argNullEx)
             {

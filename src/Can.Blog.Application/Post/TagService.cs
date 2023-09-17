@@ -42,5 +42,27 @@ namespace Can.Blog.Post
             return ObjectMapper.Map<Blog.Tag,TagDTO>(result);
 
         }
+
+        public async Task DeleteAsync(List<TagDTO> tagDtos)
+        {
+            foreach (var tagDto in tagDtos)
+            {
+                var tagEntity = await _tagRepository.FirstOrDefaultAsync(t => t.Id == tagDto.Id);
+                if (tagEntity != null)
+                {
+                    await _tagRepository.DeleteAsync(tagEntity);
+                }
+            }
+        }
+
+        public async Task DeleteAsync(Guid id)
+        {
+                var tagEntity = await _tagRepository.FirstOrDefaultAsync(t => t.Id == id);
+                if (tagEntity != null)
+                {
+                    await _tagRepository.DeleteAsync(tagEntity);
+                }
+        }
+
     }
 }
