@@ -198,7 +198,6 @@ public class BlogHttpApiHostModule : AbpModule
         }
 
         app.UseCorrelationId();
-        app.UseStaticFiles();
         app.UseRouting();
         app.UseCors();
         app.UseAuthentication();
@@ -211,6 +210,20 @@ public class BlogHttpApiHostModule : AbpModule
 
         app.UseUnitOfWork();
         app.UseAuthorization();
+
+        app.UseDefaultFiles();
+        app.UseStaticFiles();
+
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapControllerRoute(
+                name: "default",
+                pattern: "{controller=Home}/{action=Index}/{id?}");
+            // Fallback
+            endpoints.MapFallbackToController("Index", "Fallback");
+        });
+
+        //app.MapFallbackToController("Index", "Fallback");
 
         app.UseSwagger();
         app.UseAbpSwaggerUI(c =>
