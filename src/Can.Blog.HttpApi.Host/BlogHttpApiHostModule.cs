@@ -29,6 +29,9 @@ using Volo.Abp.VirtualFileSystem;
 using Volo.Abp.AspNetCore.ExceptionHandling;
 using Autofac.Core;
 using System.Text.Json.Serialization;
+using Volo.Abp.OpenIddict;
+using Microsoft.AspNetCore.Hosting;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Can.Blog;
 
@@ -47,6 +50,8 @@ public class BlogHttpApiHostModule : AbpModule
 {
     public override void PreConfigureServices(ServiceConfigurationContext context)
     {
+        var hostingEnvironment = context.Services.GetHostingEnvironment();
+
         PreConfigure<OpenIddictBuilder>(builder =>
         {
             builder.AddValidation(options =>
@@ -56,6 +61,31 @@ public class BlogHttpApiHostModule : AbpModule
                 options.UseAspNetCore();
             });
         });
+
+        if (hostingEnvironment.IsDevelopment())
+        {
+            PreConfigure<AbpOpenIddictAspNetCoreOptions>(options =>
+            {
+                // This is default value, you can remove this line.
+                options.AddDevelopmentEncryptionAndSigningCertificate = true;
+            });
+        }
+
+        // Production or Staging environment
+        if (!hostingEnvironment.IsDevelopment())
+        {
+            PreConfigure<AbpOpenIddictAspNetCoreOptions>(options =>
+            {
+                options.AddDevelopmentEncryptionAndSigningCertificate = false;
+            });
+
+            PreConfigure<OpenIddictServerBuilder>(builder =>
+            {
+                builder.AddEphemeralEncryptionKey();
+                builder.AddEphemeralSigningKey();
+
+            });
+        }
     }
 
     public override void ConfigureServices(ServiceConfigurationContext context)
@@ -79,6 +109,7 @@ public class BlogHttpApiHostModule : AbpModule
         {
             options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
         });
+
     }
 
     private void ConfigureAuthentication(ServiceConfigurationContext context)
@@ -157,6 +188,7 @@ public class BlogHttpApiHostModule : AbpModule
                 options.SwaggerDoc("v1", new OpenApiInfo { Title = "Blog API", Version = "v1" });
                 options.DocInclusionPredicate((docName, description) => true);
                 options.CustomSchemaIds(type => type.FullName);
+                options.HideAbpEndpoints();
             });
     }
 
@@ -185,17 +217,17 @@ public class BlogHttpApiHostModule : AbpModule
         var app = context.GetApplicationBuilder();
         var env = context.GetEnvironment();
 
-        if (env.IsDevelopment())
-        {
-            app.UseDeveloperExceptionPage();
-        }
+
+        app.UseDeveloperExceptionPage();
 
         app.UseAbpRequestLocalization();
 
-        if (!env.IsDevelopment())
-        {
-            app.UseErrorPage();
-        }
+        //if (!env.IsDevelopment())
+        //{
+        //    app.UseErrorPage();
+        //}
+        app.UseMiddleware<ErrorHandlingMiddleware>();
+        app.UseSwaggerRedirect();
 
         app.UseCorrelationId();
         app.UseRouting();
@@ -203,10 +235,10 @@ public class BlogHttpApiHostModule : AbpModule
         app.UseAuthentication();
         app.UseAbpOpenIddictValidation();
 
-        if (MultiTenancyConsts.IsEnabled)
-        {
-            app.UseMultiTenancy();
-        }
+        //if (MultiTenancyConsts.IsEnabled)
+        //{
+        //    app.UseMultiTenancy();
+        //}
 
         app.UseUnitOfWork();
         app.UseAuthorization();
@@ -223,7 +255,6 @@ public class BlogHttpApiHostModule : AbpModule
             endpoints.MapFallbackToController("Index", "Fallback");
         });
 
-        //app.MapFallbackToController("Index", "Fallback");
 
         app.UseSwagger();
         app.UseAbpSwaggerUI(c =>
@@ -239,4 +270,9 @@ public class BlogHttpApiHostModule : AbpModule
         app.UseAbpSerilogEnrichers();
         app.UseConfiguredEndpoints();
     }
+
+    //private X509Certificate2 GetSigningCertificate(IWebHostEnvironment hostingEnv)
+    //{
+    //    return new X509Certificate2(Path.Combine(hostingEnv.ContentRootPath, "authserver.pfx"), "00000000-0000-0000-0000-000000000000");
+    //}
 }
