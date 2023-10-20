@@ -9,7 +9,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Can.Blog.EntityFrameworkCore;
-using Can.Blog.MultiTenancy;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.Basic;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.Basic.Bundling;
 using Microsoft.OpenApi.Models;
@@ -19,7 +18,6 @@ using Volo.Abp.Account;
 using Volo.Abp.Account.Web;
 using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.AspNetCore.Mvc.UI.Bundling;
-using Volo.Abp.AspNetCore.Mvc.UI.Theme.Shared;
 using Volo.Abp.AspNetCore.Serilog;
 using Volo.Abp.Autofac;
 using Volo.Abp.Modularity;
@@ -27,11 +25,15 @@ using Volo.Abp.Swashbuckle;
 using Volo.Abp.UI.Navigation.Urls;
 using Volo.Abp.VirtualFileSystem;
 using Volo.Abp.AspNetCore.ExceptionHandling;
-using Autofac.Core;
 using System.Text.Json.Serialization;
 using Volo.Abp.OpenIddict;
 using Microsoft.AspNetCore.Hosting;
 using System.Security.Cryptography.X509Certificates;
+using System.Net.Http;
+using System.Security.Authentication;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Volo.Abp.AspNetCore.Mvc.UI.Theme.Shared;
+using Volo.Abp.OpenIddict.WildcardDomains;
 
 namespace Can.Blog;
 
@@ -50,7 +52,9 @@ public class BlogHttpApiHostModule : AbpModule
 {
     public override void PreConfigureServices(ServiceConfigurationContext context)
     {
+
         var hostingEnvironment = context.Services.GetHostingEnvironment();
+        var configuration = context.Services.GetConfiguration();
 
         PreConfigure<OpenIddictBuilder>(builder =>
         {
@@ -71,7 +75,6 @@ public class BlogHttpApiHostModule : AbpModule
             });
         }
 
-        // Production or Staging environment
         if (!hostingEnvironment.IsDevelopment())
         {
             PreConfigure<AbpOpenIddictAspNetCoreOptions>(options =>
@@ -81,9 +84,9 @@ public class BlogHttpApiHostModule : AbpModule
 
             PreConfigure<OpenIddictServerBuilder>(builder =>
             {
-                builder.AddEphemeralEncryptionKey();
-                builder.AddEphemeralSigningKey();
-
+                builder.AddSigningCertificate(GetSigningCertificate(hostingEnvironment));
+                builder.AddEncryptionCertificate(GetSigningCertificate(hostingEnvironment));
+                builder.SetIssuer(new Uri(configuration["AuthServer:Authority"]!));
             });
         }
     }
@@ -94,7 +97,7 @@ public class BlogHttpApiHostModule : AbpModule
         var hostingEnvironment = context.Services.GetHostingEnvironment();
 
         ConfigureAuthentication(context);
-        ConfigureBundles();
+        //ConfigureBundles();
         ConfigureUrls(configuration);
         ConfigureConventionalControllers();
         ConfigureVirtualFileSystem(context);
@@ -217,15 +220,24 @@ public class BlogHttpApiHostModule : AbpModule
         var app = context.GetApplicationBuilder();
         var env = context.GetEnvironment();
 
+        app.Use((ctx, next) =>
+        {
+            ctx.Request.Scheme = "https";
+            return next();
+        });
 
-        app.UseDeveloperExceptionPage();
+        if (env.IsDevelopment())
+        {
+            app.UseDeveloperExceptionPage();
+        }
 
         app.UseAbpRequestLocalization();
 
-        //if (!env.IsDevelopment())
-        //{
-        //    app.UseErrorPage();
-        //}
+        if (!env.IsDevelopment())
+        {
+            app.UseErrorPage();
+        }
+
         app.UseMiddleware<ErrorHandlingMiddleware>();
         app.UseSwaggerRedirect();
 
@@ -270,9 +282,20 @@ public class BlogHttpApiHostModule : AbpModule
         app.UseAbpSerilogEnrichers();
         app.UseConfiguredEndpoints();
     }
+    
+    private X509Certificate2 GetSigningCertificate(IWebHostEnvironment hostingEnv)
+    {
+        var debugFilePath = Path.Combine(hostingEnv.ContentRootPath, "ContentRootPath.txt");
+        File.WriteAllText(debugFilePath, hostingEnv.ContentRootPath);
 
-    //private X509Certificate2 GetSigningCertificate(IWebHostEnvironment hostingEnv)
-    //{
-    //    return new X509Certificate2(Path.Combine(hostingEnv.ContentRootPath, "authserver.pfx"), "00000000-0000-0000-0000-000000000000");
-    //}
+        var fileName = "authserver.pfx";
+        var passPhrase = "2D7AA457-5D33-48D6-936F-C48E5EF468ED";
+        var file = Path.Combine(hostingEnv.ContentRootPath, fileName);
+
+        File.AppendAllText(debugFilePath, file);
+
+        if (!File.Exists(file)) throw new FileNotFoundException($"Signing Certificate couldn't found: {file}");
+
+        return new X509Certificate2(file, passPhrase);
+    }
 }
