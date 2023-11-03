@@ -1,4 +1,6 @@
-﻿using Volo.Abp.Account;
+﻿using Can.Blog.VideoDownload;
+using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp.Account;
 using Volo.Abp.AutoMapper;
 using Volo.Abp.FeatureManagement;
 using Volo.Abp.Identity;
@@ -27,5 +29,9 @@ public class BlogApplicationModule : AbpModule
         {
             options.AddMaps<BlogApplicationModule>();
         });
+
+        context.Services.AddTransient<IVideoDownloadStrategy, YouTubeDownloadStrategy>();
+        context.Services.AddTransient<IVideoDownloadStrategy, TwitterDownloadStrategy>();
+        context.Services.AddTransient<IVideoDownloadStrategy, InstagramDownloadStrategy>();
     }
 }
