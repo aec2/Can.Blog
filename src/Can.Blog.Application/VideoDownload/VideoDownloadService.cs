@@ -54,5 +54,19 @@ namespace Can.Blog.VideoDownload
             return youTubeStrategy.GetVideoQualitiesAsync(url);
         }
 
+        public async Task<string> GetHighestQualityAndAudioMuxedStreamAsync(string url)
+        {
+            var youTubeStrategy = _downloadStrategy as IYouTubeDownloadStrategy;
+
+            if (youTubeStrategy == null)
+            {
+                throw new NotSupportedException("YouTube strategy is not available.");
+            }
+
+            var highestQualityAndAudioMuxedStreamAsync = await youTubeStrategy.GetHighestQualityAndAudioMuxedStreamAsync(url);
+
+            return highestQualityAndAudioMuxedStreamAsync;
+        }
+
     }
 }

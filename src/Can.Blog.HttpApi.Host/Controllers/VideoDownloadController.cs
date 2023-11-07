@@ -5,6 +5,8 @@ using Can.Blog.VideoDownload.DTO;
 using Volo.Abp.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using Microsoft.Net.Http.Headers;
 
 namespace Can.Blog.Controllers
 {
@@ -71,6 +73,27 @@ namespace Can.Blog.Controllers
 
             var qualities = await _videoDownloadService.GetYouTubeVideoQualitiesAsync(videoUrl);
             return Ok(qualities);
+        }
+
+        [HttpGet("download/highest-quality")]
+        public async Task<IActionResult> DownloadHighestQuality(string videoUrl)
+        {
+            _videoDownloadService.SetStrategy(new YouTubeDownloadStrategy());
+
+            var filePath = await _videoDownloadService.GetHighestQualityAndAudioMuxedStreamAsync(videoUrl);
+
+            var memoryStream = new MemoryStream(await System.IO.File.ReadAllBytesAsync(filePath));
+            var result = File(memoryStream, "video/mp4", Path.GetFileName(filePath));
+            // Set the content disposition header to force a file download in the browser
+            var contentDisposition = new ContentDispositionHeaderValue("attachment")
+            {
+                FileName = Path.GetFileName(filePath)
+            };
+            Response.Headers[HeaderNames.ContentDisposition] = contentDisposition.ToString();
+            // Delete the temporary file after serving it to the client
+            System.IO.File.Delete(filePath);
+
+            return result;
         }
     }
 }

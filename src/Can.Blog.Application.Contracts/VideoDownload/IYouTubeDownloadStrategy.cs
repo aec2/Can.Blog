@@ -9,4 +9,5 @@ public interface IYouTubeDownloadStrategy : IVideoDownloadStrategy
 {
     Task<StreamManifest> GetVideoStreamManifestAsync(string url);
     Task<List<VideoQualityDto>> GetVideoQualitiesAsync(string url);
+    Task<string> GetHighestQualityAndAudioMuxedStreamAsync(string url);
 }
