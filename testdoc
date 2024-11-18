@@ -1,0 +1,23 @@
+SELECT 
+    RIGHT(
+        HardwareSettingsName, 
+        CHARINDEX('>', REVERSE(HardwareSettingsName) + '>') - 1
+    ) AS ExtractedHardwareName,
+    LogTime,
+    taol.UserID,
+    taol.Username
+FROM 
+    BioAffix.dbo.tblAccessOperationLog taol
+WHERE 
+    ComputerName IN ('BA-31BA-0613', 'BA-CD67-CA6E')
+    AND taol.LogTime BETWEEN :BeginDate AND :EndDate
+    AND CAST(
+        SUBSTRING(
+            AccessLocation,
+            CHARINDEX('(', AccessLocation) + 1,
+            CHARINDEX(')', AccessLocation) - CHARINDEX('(', AccessLocation) - 1
+        ) AS INT
+    ) IN (:AccessLocationNumbers)
+    AND taol.UserID = :UserID
+ORDER BY 
+    LogTime ASC;
