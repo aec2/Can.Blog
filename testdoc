@@ -1,55 +1,22 @@
-SELECT 
-    RIGHT(
-        HardwareSettingsName, 
-        CHARINDEX('>', REVERSE(HardwareSettingsName) + '>') - 1
-    ) AS ExtractedHardwareName,
-    LogTime,
-    taol.UserID,
-    taol.Username
-FROM 
-    BioAffix.dbo.tblAccessOperationLog taol
-WHERE 
-    ComputerName IN ('BA-31BA-0613', 'BA-CD67-CA6E')
-    AND taol.LogTime BETWEEN :BeginDate AND :EndDate
-    AND CAST(
-        SUBSTRING(
-            AccessLocation,
-            CHARINDEX('(', AccessLocation) + 1,
-            CHARINDEX(')', AccessLocation) - CHARINDEX('(', AccessLocation) - 1
-        ) AS INT
-    ) IN (:AccessLocationNumbers)
-    AND taol.UserID = :UserID
-ORDER BY 
-    LogTime ASC;
+private void MainForm_Load(object sender, EventArgs e)
+{
+    // TextBox styling
+    txtUsername.Font = new Font("Segoe UI", 9);
+    txtUsername.BorderStyle = BorderStyle.FixedSingle;
+    txtUsername.Text = "Enter username";
+    txtUsername.ForeColor = Color.Gray;
+    txtUsername.Leave += txtUsername_Leave;
+    txtUsername.Enter += txtUsername_Enter;
 
-
-######
-
-DECLARE @BeginDate DATETIME = '2024-11-15T17:15:02';
-DECLARE @EndDate DATETIME = '2024-11-15T18:15:02';
-DECLARE @AccessLocationNumbers NVARCHAR(MAX) = '241';
-DECLARE @UserID INT = 3772;
-
-SELECT 
-    RIGHT(
-        HardwareSettingsName, 
-        CHARINDEX('>', REVERSE(HardwareSettingsName) + '>') - 1
-    ) AS ExtractedHardwareName,
-    LogTime,
-    taol.UserID,
-    taol.Username
-FROM 
-    BioAffix.dbo.tblAccessOperationLog taol
-WHERE 
-    ComputerName IN ('BA-31BA-0613', 'BA-CD67-CA6E')
-    AND taol.LogTime BETWEEN @BeginDate AND @EndDate
-    AND CAST(
-        SUBSTRING(
-            AccessLocation,
-            CHARINDEX('(', AccessLocation) + 1,
-            CHARINDEX(')', AccessLocation) - CHARINDEX('(', AccessLocation) - 1
-        ) AS INT
-    ) IN (241)
-    AND taol.UserID = @UserID
-ORDER BY 
-    LogTime ASC;
+    // Button styling
+    btnFetchUser.Font = new Font("Segoe UI", 9, FontStyle.Bold);
+    btnFetchUser.FlatStyle = FlatStyle.Flat;
+    btnFetchUser.FlatAppearance.BorderSize = 1;
+    btnFetchUser.FlatAppearance.BorderColor = Color.Navy;
+    btnFetchUser.FlatAppearance.MouseOverBackColor = Color.DarkCyan;
+    btnFetchUser.FlatAppearance.MouseDownBackColor = Color.Teal;
+    btnFetchUser.BackColor = Color.Navy;
+    btnFetchUser.ForeColor = Color.White;
+    btnFetchUser.Size = new Size(100, 30);
+    btnFetchUser.TextAlign = ContentAlignment.MiddleCenter;
+}
